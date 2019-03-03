@@ -12,6 +12,7 @@ using Library.API.Services;
 using Library.API.Entities;
 using Microsoft.EntityFrameworkCore;
 using Library.API.Helpers;
+using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace Library.API
 {
@@ -32,7 +33,11 @@ namespace Library.API
 
        public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+            services.AddMvc(setupAction =>
+            {
+                setupAction.ReturnHttpNotAcceptable = true;
+                setupAction.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
+            });
 
            var connectionString = Configuration["connectionStrings:libraryDBConnectionString"];
             services.AddDbContext<LibraryContext>(o => o.UseSqlServer(connectionString));
@@ -68,6 +73,8 @@ namespace Library.API
                 src.DateOfBirth.GetCurrentAge()));
 
                 cfg.CreateMap<Entities.Book, Models.BookDto>();
+
+                cfg.CreateMap<Models.AuthorForCreationDto, Entities.Author>();
             });
 
             libraryContext.EnsureSeedDataForContext();
