@@ -54,6 +54,7 @@ namespace Library.API.Controller
             }
 
             var authorEntity = Mapper.Map<Author>(author);
+
             _libraryRepository.AddAuthor(authorEntity);
 
             if (!_libraryRepository.Save())
