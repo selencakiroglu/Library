@@ -19,7 +19,6 @@ namespace Library.API.Services
             author.Id = Guid.NewGuid();
             _context.Authors.Add(author);
 
-            // the repository fills the id (instead of using identity columns)
             if (author.Books.Any())
             {
                 foreach (var book in author.Books)
@@ -34,8 +33,6 @@ namespace Library.API.Services
             var author = GetAuthor(authorId);
             if (author != null)
             {
-                // if there isn't an id filled out (ie: we're not upserting),
-                // we should generate one
                 if (book.Id == Guid.Empty)
                 {
                     book.Id = Guid.NewGuid();
