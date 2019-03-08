@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore;
+using NLog.Web;
 
 namespace Library.API
 {
@@ -17,6 +18,7 @@ namespace Library.API
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseIISIntegration()
                 .UseStartup<Startup>()
+                .UseNLog()
                 .Build();
 
             host.Run();
