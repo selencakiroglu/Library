@@ -58,6 +58,8 @@ namespace Library.API
                 implementationFactory.GetService<IActionContextAccessor>().ActionContext;
                 return new UrlHelper(actionContext);
             });
+
+            services.AddTransient<IPropertyMappingService, PropertyMappingService>();
         }
         
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, 
