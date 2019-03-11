@@ -18,6 +18,7 @@ using NLog.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Newtonsoft.Json.Serialization;
 
 namespace Library.API
 {
@@ -43,6 +44,11 @@ namespace Library.API
                 setupAction.ReturnHttpNotAcceptable = true;
                 setupAction.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
                 setupAction.InputFormatters.Add(new XmlDataContractSerializerInputFormatter());
+            })
+            .AddJsonOptions(options =>
+            {
+                options.SerializerSettings.ContractResolver =
+                new CamelCasePropertyNamesContractResolver();
             });
 
            var connectionString = Configuration["connectionStrings:libraryDBConnectionString"];
@@ -54,12 +60,14 @@ namespace Library.API
 
             services.AddScoped<IUrlHelper, UrlHelper>(implementationFactory =>
             {
-                var actionContext =
-                implementationFactory.GetService<IActionContextAccessor>().ActionContext;
+                var actionContext = implementationFactory.GetService<IActionContextAccessor>()
+                .ActionContext;
                 return new UrlHelper(actionContext);
             });
 
             services.AddTransient<IPropertyMappingService, PropertyMappingService>();
+
+            services.AddTransient<ITypeHelperService, TypeHelperService>();
         }
         
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, 
