@@ -190,6 +190,8 @@ namespace Library.API.Controller
         }
 
         [HttpPost(Name = "CreateAuthor")]
+        [RequestHeaderMatchesMediaType("Content-Type",
+            new [] { "application/vnd.marvin.author.full+json" })]
         public IActionResult CreateAuthor([FromBody] AuthorForCreationDto author)
         {
             if (author == null)
@@ -212,6 +214,42 @@ namespace Library.API.Controller
 
             var linkedResourceToReturn = authorToReturn.ShapeData(null)
                 as IDictionary<string, object>;
+
+            linkedResourceToReturn.Add("links", links);
+
+            return CreatedAtRoute("GetAuthor",
+                new { id = authorToReturn.Id },
+                linkedResourceToReturn);
+        }
+
+        [HttpPost(Name = "CreateAuthorWithDateOfDeath")]
+        [RequestHeaderMatchesMediaType("Content-Type",
+            new[] { "application/vnd.marvin.authorwithdateofdeath.full+json",
+                    "application/vnd.marvin.authorwithdateofdeath.full+xml"})]
+        [RequestHeaderMatchesMediaType("Accept", new[] { "..." })]
+        public IActionResult CreateAuthorWithDateOfDeath(
+            [FromBody] AuthorForCreationWithDateOfDeathDto author)
+        {
+            if (author == null)
+            {
+                return BadRequest();
+            }
+
+            var authorEntity = Mapper.Map<Author>(author);
+
+            _libraryRepository.AddAuthor(authorEntity);
+
+            if (!_libraryRepository.Save())
+            {
+                throw new Exception("Creating an author failed on save.");
+            }
+
+            var authorToReturn = Mapper.Map<AuthorDto>(authorEntity);
+
+            var links = CreateLinksForAuthor(authorToReturn.Id, null);
+
+            var linkedResourceToReturn = authorToReturn.ShapeData(null)
+               as IDictionary<string, object>;
 
             linkedResourceToReturn.Add("links", links);
 
