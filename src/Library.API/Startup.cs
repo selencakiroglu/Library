@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -19,6 +16,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Newtonsoft.Json.Serialization;
+using AspNetCoreRateLimit;
 
 namespace Library.API
 {
@@ -107,7 +105,43 @@ namespace Library.API
                     validationModelOptions.MustRevalidate = true;
                 });
 
-            services.AddResponseCaching();
+            //services.AddResponseCaching();
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy("LibraryAPICorsPolicy", builder =>
+                {
+                    builder.AllowAnyOrigin().WithMethods("GET");
+                }
+                );
+            }
+            );
+
+            services.AddMemoryCache();
+
+            services.Configure<IpRateLimitOptions>((options) =>
+            {
+                options.GeneralRules = new System.Collections.Generic.List<RateLimitRule>()
+                {
+                    new RateLimitRule()
+                    {
+                        Endpoint = "*",
+                        Limit = 1000,
+                        Period = "5m"
+                    },
+                    new RateLimitRule()
+                    {
+                        Endpoint = "*",
+                        Limit = 200,
+                        Period = "10s"
+                    }
+                };
+            });
+            
+            services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+            services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
+            services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
+
         }
         
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, 
@@ -167,7 +201,9 @@ namespace Library.API
 
             libraryContext.EnsureSeedDataForContext();
 
-            app.UseResponseCaching();
+            //app.UseResponseCaching();
+
+            app.UseIpRateLimiting();
 
             app.UseHttpCacheHeaders();
 
